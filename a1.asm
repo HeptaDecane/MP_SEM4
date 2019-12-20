@@ -1,35 +1,90 @@
-section	.data
-global x
-x:    
-   db  2
+;# Macro for Printing a String
+%macro print 2
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, %1
+    mov edx, %2
+    int 80h
+%endmacro
 
-sum: 
-   db  0
-   
-section	.text
-   global _start   ;must be declared for linker (ld)
-	
-_start:	
+;# Macro for exit call
+%macro exit 0
+    mov eax, 1
+    mov ebx, 0
+    int 80h
+%endmacro
 
-   mov  ebx,0h      ;EBX will store the sum
+section .data
+    pmsg: db "The Count of Positive Numbers: "
+    plen: equ $-pmsg
+    nmsg: db "The Count of Negative Numbers: "
+    nlen: equ $-nmsg
+    newLine: db 10
+    arr: dd 600,-500,432,-35,2,1
+    n: equ 6
+
+section .bss
+    pcount: resb 1
+    ncount: resb 1
+    digit: resb 1
+
+section .text
+    global _start
+    _start:
+
+        mov esi,arr
+        mov edi,n
+        mov ebx,0
+        mov ecx,0
+
+        ;# Beginning of the Loop
+        begin:
+        mov eax,[esi]
+        add eax,0h
+        js negative
+
+        positive:
+        inc ebx
+        jmp update
+
+        negative:
+        inc ecx
+
+        update:
+        add esi,4
+        dec edi
+        jnz begin
+        ;# End of the Loop
+
+        ;# Store Count in Variables
+        mov [pcount],ebx
+        mov [ncount],ecx
+
+        ;# Print Positive Count
+        print pmsg,plen
+        mov eax,[pcount]
+        call printEAXDigit
+
+        print newLine,1
+
+        ;# Print Negative Count
+        print nmsg,nlen
+        mov eax,[ncount]
+        call printEAXDigit
+
+        print newLine,1
+
+        exit
 
 
-   add ebx,5h
 
-done: 
-
-   add   ebx, '0'
-   mov  [sum], ebx ;done, store result in "sum"
-
-display:
-
-   mov  edx,1      ;message length
-   mov  ecx, sum   ;message to write
-   mov  ebx, 1     ;file descriptor (stdout)
-   mov  eax, 4     ;system call number (sys_write)
-   int  0x80       ;call kernel
-	
-   mov  eax, 1     ;system call number (sys_exit)
-   int  0x80       ;call kernel
-
-
+;# Procedure for Printing Single Digit
+printEAXDigit:
+    add eax,30h
+    mov [digit],eax
+    mov eax,4
+    mov ebx,1
+    mov ecx,digit
+    mov edx,1
+    int 80h
+    ret
