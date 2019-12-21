@@ -13,18 +13,18 @@
 %endmacro
 
 section .data
-pmsg: db "The Count of Positive Numbers: "
-plen: equ $-pmsg
-nmsg: db "The Count of Negative Numbers: "
-nlen: equ $-nmsg
-newLine: db 10
-arr: dq 600,-500,432,-35,2,1
-n: equ 6
+    pmsg: db "The Count of Positive Numbers: "
+    plen: equ $-pmsg
+    nmsg: db "The Count of Negative Numbers: "
+    nlen: equ $-nmsg
+    newLine: db 10
+    arr: dq 600,-500,432,-35,2,1
+    n: equ 6
 
 section .bss
-    pcount: resq 1
-        ncount: resq 1
-        digit: resq 1
+    pcount: resb 1
+        ncount: resb 1
+        digit: resb 1
 
 section .text
         global _start
