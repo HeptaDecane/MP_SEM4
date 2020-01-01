@@ -20,6 +20,7 @@ section .data
     newLine: db 10
     arr: dq 600,-500,432,-35,2,1
     n: equ 6
+    ten: db "10"
 
 section .bss
     pcount: resb 1
@@ -70,11 +71,18 @@ section .text
 
 
 printRAXDigit:
-    add rax,30h
-    mov [digit],rax
-    mov rax,1
-    mov rdi,1
-    mov rsi,digit
-    mov rdx,1
-    syscall
-    ret
+	cmp rax,10
+	je label1
+	add rax,30h
+	mov [digit],rax
+	mov rax,1
+	mov rdi,1
+	mov rsi,digit
+	mov rdx,1
+	syscall
+	ret
+	
+	label1:
+	print ten,2
+	ret
+	
