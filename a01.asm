@@ -1,17 +1,15 @@
-;# Macro for Printing a String
 %macro print 2
-    mov eax, 4
-    mov ebx, 1
-    mov ecx, %1
-    mov edx, %2
-    int 80h
+    mov rax,1
+    mov rdi,1
+    mov rsi,%1
+    mov rdx,%2
+    syscall
 %endmacro
 
-;# Macro for exit call
 %macro exit 0
-    mov eax, 1
-    mov ebx, 0
-    int 80h
+    mov rax,60
+    mov rdi,0
+    syscall
 %endmacro
 
 section .data
@@ -20,71 +18,71 @@ section .data
     nmsg: db "The Count of Negative Numbers: "
     nlen: equ $-nmsg
     newLine: db 10
-    arr: dd 600,-500,432,-35,2,1
+    arr: dq 600,-500,432,-35,2,1
     n: equ 6
+    ten: db "10"
 
 section .bss
     pcount: resb 1
-    ncount: resb 1
-    digit: resb 1
+        ncount: resb 1
+        digit: resb 1
 
 section .text
-    global _start
-    _start:
+        global _start
+        _start:
+            mov rsi,arr
+            mov rdi,n
+            mov r8,0
+            mov r9,0
 
-        mov esi,arr
-        mov edi,n
-        mov ebx,0
-        mov ecx,0
+            begin:
+            mov rax,[rsi]
+            add rax,0h
+            js negative
 
-        ;# Beginning of the Loop
-        begin:
-        mov eax,[esi]
-        add eax,0h
-        js negative
+            positive:
+            inc r8
+            jmp update
 
-        positive:
-        inc ebx
-        jmp update
+            negative:
+            inc r9
 
-        negative:
-        inc ecx
+            update:
+            add rsi,8
+            dec rdi
+            jnz begin
 
-        update:
-        add esi,4
-        dec edi
-        jnz begin
-        ;# End of the Loop
+            mov [pcount],r8
+            mov [ncount],r9
 
-        ;# Store Count in Variables
-        mov [pcount],ebx
-        mov [ncount],ecx
+            print pmsg,plen
+            mov rax,[pcount]
+            call printRAXDigit
 
-        ;# Print Positive Count
-        print pmsg,plen
-        mov eax,[pcount]
-        call printEAXDigit
+            print newLine,1
 
-        print newLine,1
+            print nmsg,nlen
+            mov rax,[ncount]
+            call printRAXDigit
 
-        ;# Print Negative Count
-        print nmsg,nlen
-        mov eax,[ncount]
-        call printEAXDigit
+            print newLine,1
 
-        print newLine,1
-
-        exit
+            exit
 
 
-
-;# Procedure for Printing Single Digit
-printEAXDigit:
-    add eax,30h
-    mov [digit],eax
-    mov eax,4
-    mov ebx,1
-    mov ecx,digit
-    mov edx,1
-    int 80h
-    ret
+printRAXDigit:
+	cmp rax,10
+	je label1
+	add rax,30h
+	mov [digit],rax
+	mov rax,1
+	mov rdi,1
+	mov rsi,digit
+	mov rdx,1
+	syscall
+	ret
+	
+	label1:
+	print ten,2
+	ret
+	

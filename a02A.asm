@@ -17,48 +17,48 @@
 section .data
 	srcBlkBfr: db "Source Block Before Transfer: "
 	lenSrcBlkBfr: equ $-srcBlkBfr
-	
+
 	desBlkBfr: db "Dest'n Block Before Transfer: "
 	lenDesBlkBfr: equ $-desBlkBfr
-	
+
 	srcBlkAftr: db "Source Block After Transfer: "
 	lenSrcBlkAftr: equ $-srcBlkAftr
-	
+
 	desBlkAftr: db "Dest'n Block After Transfer: "
 	lenDesBlkAftr: equ $-desBlkAftr
-	
+
 	space: db " "
 	newLine: db 10
-	
-	srcBlk: dq 1,2,3,4,5
-	n1: equ 5
-	
-	desBlk: dq 0,0,0,0,0
-	n2: equ 5
-	
+
+	srcBlk: db 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16
+	n1: equ 16
+
+	desBlk: db 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+	n2: equ 16
+
 section .bss
 	optionbuff resb 02
 	dispbuff resb 02
 	char_answer resb 16
 	digitSpace resb 100
 	digitSpacePos resb 8
-    
-    
+
+
 section .text
 	global _start:
 	_start:
 		print srcBlkBfr,lenSrcBlkBfr
 		call _disSrcBlk
 		print newLine,1
-		
+
 		print desBlkBfr,lenDesBlkBfr
 		call _disDesBlk
 		print newLine,1
-		
+
 		print newLine,1
-		
+
 		call _tranferLogic
-		
+
 		print srcBlkAftr,lenSrcBlkAftr
 		call _disSrcBlk
 		print newLine,1
@@ -66,70 +66,70 @@ section .text
 		print desBlkAftr,lenDesBlkAftr
 		call _disDesBlk
 		print newLine,1
-		
+
 		mov rax,60
 		mov rdi,00
 		syscall
-		
-;_____________________________________________________________	
-		
+
+;_____________________________________________________________
+
 _disSrcBlk:
 	mov rsi,srcBlk
 	mov rcx,n1
-	
+
 	beginLoop2:
-	mov rax,[rsi]
+	mov al,byte[rsi]
 	push rsi
 	push rcx
 	call _printRAX
 	print space,1
 	pop rcx
 	pop rsi
-	
+
 	update2:
-	add rsi,8
+	inc rsi
 	dec rcx
 	jnz beginLoop1
 	ret
-	
-	
+
+
 _disDesBlk:
 	mov rsi,desBlk
 	mov rcx,n2
-	
+
 	beginLoop1:
-	mov rax,[rsi]
+	mov al,byte[rsi]
 	push rsi
 	push rcx
 	call _printRAX
 	print space,1
 	pop rcx
 	pop rsi
-	
+
 	update1:
-	add rsi,8
+	inc rsi
 	dec rcx
 	jnz beginLoop1
-	ret	
+	ret
 
 
 _tranferLogic:
 	mov rsi,srcBlk
 	mov rdi,desBlk
 	mov rcx,n1
-	
+
 	beginLoop3:
-	mov rax,[rsi]
-	mov [rdi],rax
-	
+	mov al,byte[rsi]
+	mov byte[rdi],al
+
 	update3:
-	add rsi,8
-	add rdi,8
+	inc rsi
+	inc rdi
 	dec rcx
 	jnz beginLoop3
 	ret
-		
-	
+
+
 _printRAX:
 	mov rcx, digitSpace
 	mov rbx, 0
@@ -169,11 +169,4 @@ _printRAXLoop2:
 	cmp rcx, digitSpace
 	jge _printRAXLoop2
 
-	ret		
-	
-	
-	
-	
-	
-	
-	
+	ret
