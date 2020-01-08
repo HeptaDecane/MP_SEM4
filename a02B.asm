@@ -1,3 +1,4 @@
+;# OVERLAPPING BLOCK TRANSFER
 
 %macro print 2
 	mov rax,01
@@ -32,10 +33,10 @@ section .data
 	request: db "Enter Choice: "
 	lenRequest: equ $-request
 
-	message1: db "Block Transfer WITHOUT String Instructions:"
+	message1: db "Block Transfer WITHOUT String Instructions"
 	lenMessage1: equ $-message1
 
-	message2: db "Block Transfer WITH String Instructions:"
+	message2: db "Block Transfer WITH String Instructions"
 	lenMessage2: equ $-message2
 
 	blkBfr: db "Block Before Transfer: "
@@ -46,6 +47,7 @@ section .data
 
 	space: db " "
 	newLine: db 10
+	tab: db " :    "
 
 	block: db 1,2,3,4,5,6,7,8,0,0,0,0,0,0,0,0
 	n: equ 16
@@ -55,17 +57,20 @@ section .bss
 	choice: resb 01
 	digitSpace: resb 100
 	digitSpacePos: resb 8
+	inputBuff: resb 2
+	pos: resb 2
 ;_______________________________________________________________________________
 
 section .text
 	global _start
 	_start:
-	
+
 	print newLine,1
 	print blkBfr,lenBlkBfr
+	print newLine,1
 	call _displayBlock
 	print newLine,1
-	
+
 	menu:
 	print newLine,1
 	print title,lenTitle
@@ -82,21 +87,55 @@ section .text
 	print newLine,1
 
 	cmp byte[choice],31h
-	;je label1
+	je label1
 
 	cmp byte[choice],32h
-	;je label2	
-		
+	je label2
+
 	exit:
 	mov rax,60
 	mov rdi,00
 	syscall
+
+	label1:		;* Without String Instructions
+	print message1,lenMessage1
+	print newLine,1
+
+	call _tranferLogic
+
+	print blkAftr,lenBlkAftr
+	print newLine,1
+	call _displayBlock
+	print newLine,1
+
+	jmp menu
+
+
+	label2:		;* With String Instructions
+	print message2,lenMessage2
+	print newLine,1
+
+	mov rsi,block
+	mov rdi,block
+	add rdi,8
+	mov rcx,8
+
+	cld
+	rep movsb
+
+	print blkAftr,lenBlkAftr
+	print newLine,1
+	call _displayBlock
+	print newLine,1
+
+	jmp menu
 ;_______________________________________________________________________________
 
 _tranferLogic:
-	mov rsi,srcBlk
-	mov rdi,desBlk
-	mov rcx,n1
+	mov rsi,block
+	mov rdi,block
+	add rdi,8
+	mov rcx,8
 
 	beginLoop3:
 	mov al,byte[rsi]
@@ -107,23 +146,29 @@ _tranferLogic:
 	inc rdi
 	dec rcx
 	jnz beginLoop3
-	ret	
+	ret
+;_______________________________________________________________________________
 
-	
-	
-	
-;_______________________________________________________________________________	
-	
 _displayBlock:
 	mov rsi,block
 	mov rcx,n
 
 	beginLoop1:
 	mov al,byte[rsi]
+
 	push rsi
 	push rcx
 	call _printRAX
-	print space,1
+	print tab,6
+
+	pop rcx
+	pop rsi
+	mov rax,rsi
+	push rsi
+	push rcx
+	call _printRAX
+	print newLine,1
+
 	pop rcx
 	pop rsi
 
@@ -132,9 +177,8 @@ _displayBlock:
 	dec rcx
 	jnz beginLoop1
 	ret
-;_______________________________________________________________________________	
-	
-	
+;_______________________________________________________________________________
+
 _printRAX:		;Hex to ASCII
 	mov rcx, digitSpace
 	mov rbx, 0
@@ -175,8 +219,4 @@ _printRAXLoop2:
 	jge _printRAXLoop2
 
 	ret
-;_______________________________________________________________________________	
-	
-	
-	
-	
+;_______________________________________________________________________________

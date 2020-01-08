@@ -1,3 +1,4 @@
+;# NON-OVERLAPPING BLOCK TRANSFER
 
 %macro print 2
 	mov rax,01
@@ -32,10 +33,10 @@ section .data
 	request: db "Enter Choice: "
 	lenRequest: equ $-request
 
-	message1: db "Block Transfer WITHOUT String Instructions:"
+	message1: db "Block Transfer WITHOUT String Instructions"
 	lenMessage1: equ $-message1
 
-	message2: db "Block Transfer WITH String Instructions:"
+	message2: db "Block Transfer WITH String Instructions"
 	lenMessage2: equ $-message2
 
 	srcBlkBfr: db "Source Block Before Transfer: "
@@ -50,11 +51,12 @@ section .data
 	desBlkAftr: db "Dest^n Block After Transfer: "
 	lenDesBlkAftr: equ $-desBlkAftr
 
-	space: db " "
-	newLine: db 10
-
 	srcBlk: db 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16
 	n1: equ 16
+	
+	space: db " "
+	newLine: db 10
+	tab: db " :    "
 
 	desBlk: db 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 	n2: equ 16
@@ -67,13 +69,15 @@ section .bss
 ;_______________________________________________________________________________
 
 section .text
-	global _start:
+	global _start
 	_start:
 		print srcBlkBfr,lenSrcBlkBfr
+		print newLine,1
 		call _disSrcBlk
 		print newLine,1
 
 		print desBlkBfr,lenDesBlkBfr
+		print newLine,1
 		call _disDesBlk
 		print newLine,1
 
@@ -110,17 +114,19 @@ section .text
 		call _tranferLogic
 
 		print srcBlkAftr,lenSrcBlkAftr
+		print newLine,1
 		call _disSrcBlk
 		print newLine,1
 
 		print desBlkAftr,lenDesBlkAftr
+		print newLine,1
 		call _disDesBlk
 		print newLine,1
 
 		jmp menu
 
 
-		label2:		;* Without String Instructions
+		label2:		;* With String Instructions
 		print message2,lenMessage2
 		print newLine,1
 
@@ -132,10 +138,12 @@ section .text
 		rep movsb
 
 		print srcBlkAftr,lenSrcBlkAftr
+		print newLine,1
 		call _disSrcBlk
 		print newLine,1
 
 		print desBlkAftr,lenDesBlkAftr
+		print newLine,1
 		call _disDesBlk
 		print newLine,1
 
@@ -148,10 +156,20 @@ _disSrcBlk:
 
 	beginLoop1:
 	mov al,byte[rsi]
+
 	push rsi
 	push rcx
 	call _printRAX
-	print space,1
+	print tab,6
+
+	pop rcx
+	pop rsi
+	mov rax,rsi
+	push rsi
+	push rcx
+	call _printRAX
+	print newLine,1
+
 	pop rcx
 	pop rsi
 
@@ -168,10 +186,20 @@ _disDesBlk:
 
 	beginLoop2:
 	mov al,byte[rsi]
+
 	push rsi
 	push rcx
 	call _printRAX
-	print space,1
+	print tab,6
+
+	pop rcx
+	pop rsi
+	mov rax,rsi
+	push rsi
+	push rcx
+	call _printRAX
+	print newLine,1
+
 	pop rcx
 	pop rsi
 
