@@ -2,7 +2,7 @@
 
 %macro print 2
 	mov rax,01
-	mov rdi,01
+	mov rdi,01 
 	mov rsi,%1
 	mov rdx,%2
 	syscall
