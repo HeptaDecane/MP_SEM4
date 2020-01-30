@@ -22,7 +22,6 @@ section .data
     message: db "HEX Number: ";
     lenMessage: equ $-message;
     newLine: db 10d;
-    hex: equ 0x1A;
 ;_______________________________________________________________________________
 
 section .bss
@@ -32,14 +31,14 @@ section .bss
 section .text
     global _start
     _start:
-        mov rax,0x512;      //Content to be Printed in RAX
+        mov rax,51A2DFh;      //Content to be Printed in RAX
 
         mov rsi,ascii+15d;
         mov rcx,16d
 
         begin:
-        xor rdx,rdx;
-        mov rbx,0x10;
+        xor rdx,rdx;        //remainder in rdx
+        mov rbx,10h;
         div rbx;
 
         cmp dl,09h;

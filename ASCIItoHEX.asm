@@ -39,8 +39,9 @@ section .text
         read hex,16;
         mov rsi,hex;
         xor rax,rax;
+
         begin1:
-        cmp byte[rsi],0xA;
+        cmp byte[rsi],10d;
         je done;
         rol rax,04d;
         mov bl,byte[rsi];
