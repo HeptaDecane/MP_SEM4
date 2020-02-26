@@ -10,6 +10,9 @@ section .data
 	errMsg: db "File Opening Error!";
 	lenErrMsg: equ $-errMsg;
 	
+	sortMsg: db 10,"Sorted List: ",10;
+	lenSortMsg: equ $-sortMsg;
+	
 	newLine: db 10d;
 	space: db " ";
 
@@ -50,7 +53,12 @@ section .text
 		mov [lenText],rax;
 		call _ProcessBuffer;
 		call _BubbleSort;
-		print array,count;
+		call _ProcessArray;
+		print sortMsg,lenSortMsg;
+		print buffer,[lenText]
+		
+		fwrite [fileDescriptor],sortMsg,lenSortMsg;
+		fwrite [fileDescriptor],buffer,[lenText];
 		jmp exit;
 		
 		
@@ -77,55 +85,77 @@ _ProcessBuffer:
 	
 	update0:
 	inc rsi;	//Number
-	inc rsi;	//Line
+	inc rsi;	//space
 	inc rdi;
 	inc byte[count];
 	dec rcx;
 	dec rcx;
 	jnz begin0;
 
-	ret;	
-
+	ret;		
+	
 _BubbleSort:
-	xor rsi,rsi;
-	xor rdi,rdi;
-	
-	
-	xor rbx,rbx;	//i=0;
-	
+	mov rsi,0h;		//i=0
+	mov rcx,[count];
+	dec rcx;
 	outerLoop:
-	xor rdx,rdx;		//j=0;
-	mov rsi,array;		//array[j]
+	mov rdi,0h;		//j=0
 	
 		innerLoop:
-		mov rdi,rsi;
-		inc rdi;		//array[j+1]
+		mov rax,rdi;		//j in RDI
+		inc rax;		//j+1 in RAX
 		
-		mov al,[rsi];
-		cmp al,[rdi];
-		jbe skip
+		mov bl,byte[array+rdi];		//array[j]
+		mov dl,byte[array,rax];		//array[j+1]
+		
+		cmp bl,dl;
+		jbe updateInnerLoop
 		
 		swap:
-		mov byte[temp],0h;
-		mov cl,[rdi];
-		mov [rdi],al;
-		mov [rsi],cl;
+		mov byte[array+rdi],dl;
+		mov byte[array+rax],bl;
 		
-		skip:
-		inc rsi;
-		
-		inc rdx;
-		cmp rdx,[count];
-		jb innerLoop;
-		
-	inc rbx;
-	cmp rbx,[count];
+		updateInnerLoop:
+		inc rdi;
+		cmp rdi,rcx
+		jb innerLoop
+	
+	updateOuterLoop:
+	inc rsi;
+	cmp rsi,rcx;
 	jb outerLoop;
 	
 	ret;	
+;																									void Database::bubbleSort(){
+;																										for(int i=0;i<n-1;i++){
+;																											for(int j=0;j<n-i-1;j++){
+;																												if(array[j+1]<array[j])
+;																													swap(&array[j],&array[j+1]);
+;																											}
+;																										}
+;																									}	
 	
-		
-		
+	
+	
+	
+_ProcessArray:
+	
+	mov rsi,array;
+	mov rdi,buffer;
+	mov rcx,[count];
+	
+	begin1:
+	mov al,[rsi];
+	mov [rdi],al;
+	
+	update1:
+	inc	rsi;
+	inc rdi;
+	inc rdi;
+	dec rcx;
+	jnz begin1
+	
+	ret;
 		
 		
 		
