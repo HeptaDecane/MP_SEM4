@@ -1,4 +1,3 @@
-;Macros For a05A and a05B
 
 %macro print 2
     mov rax,01;

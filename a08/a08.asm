@@ -4,42 +4,79 @@ section .data
     dash: db 10,"----------------------------------------------------------",10;
     lenDash: equ $-dash;
     
-    contentMsg: db "Contents of File: ";
-    lenContentMsg: equ $-contentMsg;
+    txtMsg: db "Contents of File: ";
+    lenTxtMsg: equ $-txtMsg;
     
-    copyMsg: db "File Copied";
-    lenCopyMsg: equ $-copyMsg;
+    cpMsg: db "File Copied";
+    lenCpMsg: equ $-cpMsg;
     
-    deleteMsg: db "File Deleted!";
-    lenDeleteMsg: equ $-deleteMsg;
+    delMsg: db "File Deleted!";
+    lenDelMsg: equ $-delMsg;
     
-    errMsg: db "Command Not Found!";
-    lenErrMsg: equ $-errMsg;
+    cmdErrMsg: db "Error: Invalid Command Format!";
+    lenCmdErrMsg: equ $-cmdErrMsg;
+    
+    fileErrMsg: db "File Handling Error!";
+    lenFileErrMsg: equ $-fileErrMsg;
     
     newLine: db 10d;
 	space: db " ";
+	
 	
 section .bss
 	buffer: resb 8192;
 	lenBuffer: equ $-buffer;
 	
 	fileName: resb 32;
+	
 	fileName1: resb 32;
+	lenFileName1: resb 1;
+	
 	fileName2: resb 32;
+	lenFileName2: resb 1;
+	
 	command: resb 10;
 	lenCommand resb 1;
-	inAscii: resb 16;
+	
+	count: resb 1;
 	outAscii:resb 4;
+	
 	
 section .text
 	global _start
 	_start:
+	print dash,lenDash;
+	
 	pop rbx;
+	mov byte[count],bl;
+	
 	pop rbx;
 	
-	call getCommand;
- 	print command,[lenCommand];
+	pop rbx;
+	mov rsi,command;
+	call getArgument;
+	mov byte[lenCommand],cl;
  	
+ 	call resolveCommand;
+	cmp rax,0x3B
+	je copy;
+	cmp rax,0x42
+ 	je type;
+ 	cmp rax,0xB3
+ 	je delete; 
+	
+	commandError:
+	print newLine,1;
+	print cmdErrMsg,lenCmdErrMsg;
+	print newLine,1;
+	jmp exit
+	
+	fileError:
+	print newLine,1;
+	print fileErrMsg,lenFileErrMsg;
+	print newLine,1;
+	jmp exit	
+	
 	
 	exit:
 	mov rax,60;
@@ -47,11 +84,49 @@ section .text
 	syscall;
 	
 	
-getCommand:
-	pop rbx;
-	xor rcx,rcx;
-	mov rsi,command;
 	
+	
+	copy:
+		cmp byte[count],4h
+		jne commandError;
+		
+		print newLine,1;
+		print cpMsg,lenCpMsg;
+		print newLine,1;	
+	jmp exit;
+	
+	
+	
+	
+	type:
+		cmp byte[count],3h
+		jne commandError;	
+
+		print newLine,1;
+		print txtMsg,lenTxtMsg;
+		print newLine,1;
+	jmp exit
+
+
+
+
+	delete:
+		cmp byte[count],3h
+		jne commandError;
+
+		print newLine,1;
+		print delMsg,lenDelMsg;
+		print newLine,1;
+	jmp exit;
+		
+		
+getArgument:
+;	DOC-STRING:
+;	i) Stores the command line argument to the memory location pointed by RSI.
+;	ii) Stores length of command line argument in RCX
+
+	xor rcx,rcx;		
+	xor rax,rax;
 	begin3:
 	mov al,byte[rbx];
 	mov byte[rsi],al;
@@ -60,12 +135,31 @@ getCommand:
 	inc rcx;
 	cmp byte[rbx],0H;
  	jne begin3;
- 	mov byte[lenCommand],cl;
 ret;
 
 
 
+resolveCommand:
+;	DOC-STRING:
+;	i) Distinguishes Command {COPY,TYPE,DELETE}
+;	ii) returns last two digits of ASCII sum in RAX;
+;	eg:-
+;		COPY   :3Bh
+;		DELETE :B3h
+;		TYPE   :42h	
 
+	mov rsi,command;
+	xor rax,rax;
+	begin4:
+	cmp byte[rsi],0h;
+	je done4
+	add al,byte[rsi];
+	add rax,0h;
+	inc rsi;
+	jmp begin4;
+	done4:
+ret;
+	
 
 
 _HexToAscii:;		// HEX in RAX -----> ASCII in outAscii
@@ -91,25 +185,6 @@ _HexToAscii:;		// HEX in RAX -----> ASCII in outAscii
     ret
 
 
-_AsciiToHex:;		//ASCII in inAscii ----> HEX in RAX
-	mov rsi,inAscii;
-    xor rax,rax;
-    begin1:
-    cmp byte[rsi],0xA;	//Compare With New Line
-    je done;
-    rol rax,04d;
-    mov bl,byte[rsi];
-    cmp bl,39h;
-    jbe sub30
-    sub bl,07h;
-    sub30:
-    sub bl,30h;
-    add al,bl;
-    inc rsi;
-    jmp begin1;
-
-    done:
-    ret
 
 
 
