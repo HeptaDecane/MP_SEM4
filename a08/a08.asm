@@ -7,7 +7,7 @@ section .data
     txtMsg: db "Contents of File: ";
     lenTxtMsg: equ $-txtMsg;
     
-    cpMsg: db "File Copied";
+    cpMsg: db "File Copied!";
     lenCpMsg: equ $-cpMsg;
     
     delMsg: db "File Deleted!";
@@ -28,19 +28,25 @@ section .bss
 	lenBuffer: equ $-buffer;
 	
 	fileName: resb 32;
+	lenFileName: resq 1;
 	
 	fileName1: resb 32;
-	lenFileName1: resb 1;
+	lenFileName1: resq 1;
 	
 	fileName2: resb 32;
-	lenFileName2: resb 1;
+	lenFileName2: resq 1;
 	
 	command: resb 10;
-	lenCommand resb 1;
+	lenCommand resq 1;
 	
 	count: resb 1;
 	outAscii:resb 4;
 	
+	fileDescriptor1: resq 1;
+	fileDescriptor2: resq 1;
+	fileDescriptor: resq 1;
+	
+	lenText: resq 1
 	
 section .text
 	global _start
@@ -56,6 +62,7 @@ section .text
 	mov rsi,command;
 	call getArgument;
 	mov byte[lenCommand],cl;
+	
  	
  	call resolveCommand;
 	cmp rax,0x3B
@@ -88,11 +95,40 @@ section .text
 	
 	copy:
 		cmp byte[count],4h
-		jne commandError;
+		mov rax,[count];
+		
+		pop rbx;
+		mov rsi,fileName1;
+		call getArgument;
+		mov byte[lenFileName1],cl;
+		
+		pop rbx;
+		mov rsi,fileName2;
+		call getArgument;
+		mov byte[lenFileName2],cl;
+		
+		fopen fileName1,0h;		// RD
+		cmp rax,-1d;
+		jle fileError;
+		mov [fileDescriptor1],rax;
+		
+		fopen fileName2,66d;		// RDWR+CREATE
+		cmp rax,-1d;
+		jle fileError;
+		mov [fileDescriptor2],rax;
+		
+		fread [fileDescriptor1],buffer,lenBuffer
+		mov [lenText],rax;
+		
+		fwrite [fileDescriptor2],buffer,[lenText];
 		
 		print newLine,1;
 		print cpMsg,lenCpMsg;
 		print newLine,1;	
+		
+		fclose [fileDescriptor1];
+		fclose [fileDescriptor2];
+		
 	jmp exit;
 	
 	
@@ -102,9 +138,28 @@ section .text
 		cmp byte[count],3h
 		jne commandError;	
 
+		pop rbx;
+		mov rsi,fileName;
+		call getArgument;
+		mov byte[lenFileName],cl;
+		
+		fopen fileName,0h;		//RD
+		cmp rax,-1d
+		jle fileError
+		mov [fileDescriptor],rax;
+		
+		fread [fileDescriptor],buffer,lenBuffer;
+		mov [lenText],rax;
+		
+		fclose [fileDescriptor]
+		
 		print newLine,1;
 		print txtMsg,lenTxtMsg;
 		print newLine,1;
+		print buffer,[lenText];
+		print newLine,1;
+		
+		
 	jmp exit
 
 
@@ -133,7 +188,7 @@ getArgument:
 	inc rsi;
 	inc rbx;
 	inc rcx;
-	cmp byte[rbx],0H;
+	cmp byte[rbx],0h;
  	jne begin3;
 ret;
 
