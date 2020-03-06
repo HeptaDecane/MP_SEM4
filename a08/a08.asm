@@ -114,7 +114,7 @@ section .text
 		jle fileError;
 		mov [fileDescriptor1],rax;
 		
-		fopen fileName2,66d;		// RDWR+CREATE
+		fopen fileName2,1090d;		// APPEND+RDWR+CREATE
 		cmp rax,-1d;
 		jle fileError;
 		mov [fileDescriptor2],rax;
