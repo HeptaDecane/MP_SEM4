@@ -61,8 +61,8 @@ section .text
 	pop rbx;
 	mov rsi,command;
 	call getArgument;
-	mov byte[lenCommand],cl;
-	
+	mov [lenCommand],rcx;
+	mov rax,rcx;
  	
  	call resolveCommand;
 	cmp rax,0x3B
@@ -76,11 +76,13 @@ section .text
 	print newLine,1;
 	print cmdErrMsg,lenCmdErrMsg;
 	print newLine,1;
+	print newLine,1;
 	jmp exit
 	
 	fileError:
 	print newLine,1;
 	print fileErrMsg,lenFileErrMsg;
+	print newLine,1;
 	print newLine,1;
 	jmp exit	
 	
@@ -95,7 +97,7 @@ section .text
 	
 	copy:
 		cmp byte[count],4h
-		mov rax,[count];
+		jne commandError
 		
 		pop rbx;
 		mov rsi,fileName1;
@@ -121,13 +123,14 @@ section .text
 		mov [lenText],rax;
 		
 		fwrite [fileDescriptor2],buffer,[lenText];
-		
+	
+		fclose [fileDescriptor1];
+		fclose [fileDescriptor2];
+			
 		print newLine,1;
 		print cpMsg,lenCpMsg;
 		print newLine,1;	
-		
-		fclose [fileDescriptor1];
-		fclose [fileDescriptor2];
+		print newLine,1;
 		
 	jmp exit;
 	
@@ -158,7 +161,7 @@ section .text
 		print newLine,1;
 		print buffer,[lenText];
 		print newLine,1;
-		
+		print newLine,1;
 		
 	jmp exit
 
@@ -168,10 +171,22 @@ section .text
 	delete:
 		cmp byte[count],3h
 		jne commandError;
+		
+		pop rbx;
+		mov rsi,fileName
+		call getArgument
+		mov byte[lenFileName],cl;
+		
+							
+		mov rax,87;				//id: 87d	
+		mov rdi,fileName;		//const char *pathname
+		syscall;				//System Call: sys_unlink (delete)
 
 		print newLine,1;
 		print delMsg,lenDelMsg;
 		print newLine,1;
+		print newLine,1;
+		
 	jmp exit;
 		
 		
