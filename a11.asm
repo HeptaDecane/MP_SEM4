@@ -5,7 +5,7 @@ extern printf,scanf;
 %macro _printf 3
 	pop qword[stack];
 	mov rdi,%1;
-	movsd xmm0,qword[%2];
+	movsd xmm0,qword[%2];		//MOVSD — Move Scalar Double-Precision Floating-Point Value
 	movsd xmm1,qword[%3];
 	mov rax,2;
 	call printf
